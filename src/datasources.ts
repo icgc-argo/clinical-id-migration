@@ -9,7 +9,7 @@ import {PrimaryDiagnosis} from "./models/primary-diagnosis.js";
 import {SampleRegistration} from "./models/sample-registration.js";
 import {Specimen} from "./models/specimen.js";
 import {Treatment} from "./models/treatment.js";
-import {ClinicalDonor} from "./models/clinical-donor.js";
+import {ClinicalDonor, FailedMigrations} from "./models/clinical-donor.js";
 
 import * as dotenv from 'dotenv';
 
@@ -63,7 +63,8 @@ export const MongoDataSource = new DataSource({
         }
     },*/
     entities: [
-        ClinicalDonor
+        ClinicalDonor,
+        FailedMigrations
     ],
     synchronize: false,
     logging:false

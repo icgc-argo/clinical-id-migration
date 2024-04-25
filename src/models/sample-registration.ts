@@ -16,4 +16,6 @@ export class SampleRegistration {
     entityId: string;
     @Column()
     submitterSpecimenId: string;
+    @Column()
+    submitterSampleId: string;
 }

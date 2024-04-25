@@ -1,7 +1,39 @@
-import {Column, CreateDateColumn, Entity, ObjectIdColumn, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, ObjectIdColumn} from "typeorm";
 
 @Entity({ name: 'donors' })
 export class ClinicalDonor {
+    @ObjectIdColumn()
+    id: string;
+
+    @Column()
+    donorId?: number;
+    @Column()
+    submitterId: string;
+    @Column()
+    programId: string;
+    @Column()
+    specimens: Specimen[];
+    @Column()
+    clinicalInfo: ClinicalInfo;
+    @Column()
+    primaryDiagnoses: PrimaryDiagnosis[];
+    @Column()
+    familyHistory: FamilyHistory[];
+    @Column()
+    comorbidity: Comorbidity[];
+    @Column()
+    followUps: FollowUp[];
+    @Column()
+    treatments: Treatment[];
+    @Column()
+    exposure: Exposure[];
+    @Column()
+    biomarker: Biomarker[];
+}
+
+
+@Entity({ name: 'FailedMigrations' })
+export class FailedMigrations {
     @ObjectIdColumn()
     id: string;
 

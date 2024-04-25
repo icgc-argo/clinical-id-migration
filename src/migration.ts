@@ -1,5 +1,5 @@
 
-import {ClinicalDonor} from "./models/clinical-donor.js";
+import {ClinicalDonor, FailedMigrations} from "./models/clinical-donor.js";
 import {MongoDataSource, PostgresDataSource} from "./datasources.js";
 import {Comorbidity} from "./models/comorbidity.js";
 import {Biomarker} from "./models/biomarker.js";
@@ -11,14 +11,21 @@ import {PrimaryDiagnosis} from "./models/primary-diagnosis.js";
 import {Treatment} from "./models/treatment.js";
 import {Specimen} from "./models/specimen.js";
 import {SampleRegistration} from "./models/sample-registration.js";
+import * as fs from "fs";
+import {response} from "express";
 
+var myLogFileStream = fs.createWriteStream("./console.log");
+var myConsole = new console.Console(myLogFileStream, myLogFileStream);
 
-export async function getMongoIds() {
+let checkpoint = '';
+export async function beginMigration() {
 
     console.log("...3");
     console.log("......2");
     console.log(".........1");
     console.log("............ GO!");
+    console.log("");
+    console.log("The great wildebeest migration begins...");
 
     await MongoDataSource.initialize();
     await  PostgresDataSource.initialize();
@@ -26,24 +33,39 @@ export async function getMongoIds() {
     const cdRepo = MongoDataSource.getRepository(ClinicalDonor);
     const donors = await cdRepo.find();
 
-    donors.forEach(async donor => {
-        console.log("migrating ids for  donor: "+donor.id);
+    for (const donor of donors) {
+        console.log("");
+        console.log("");
+        console.log(" ------------ migrating ids for  donor: " + donor.id+" Program Id: "+donor.programId+" -Submitter Id: "+donor.submitterId+" -------------");
+        console.log("");
+        try {
+            await migrateDonors(donor);
+            await migrateBiomarkers(donor);
+            await migrateComorbidity(donor);
+            await migrateExposure(donor);
+            await migrateFamilyHistory(donor);
+            await migrateFollowUps(donor);
+            await migratePrimaryDiagnosis(donor);
+            await migrateTreatments(donor);
+            await migrateSpecimens(donor);
+            await migrateSamples(donor);
+        } catch (e) {
+            console.log("migration for donor failed."+" -Checkpoint: "+checkpoint+" -Program Id: "+donor.programId+" -Submitter Id: "+donor.submitterId);
+            console.log(e.message);
+            await MongoDataSource.getRepository(FailedMigrations).save(donor);
+            continue;
+        }
+    }
 
-        await migrateDonors(donor);
-        await migrateBiomarkers(donor);
-        await migrateComorbidity(donor);
-        await migrateExposure(donor);
-        await migrateFamilyHistory(donor);
-        await migrateFollowUps(donor);
-        await migratePrimaryDiagnosis(donor);
-        await migrateTreatments(donor);
-        await migrateSpecimens(donor);
-        await migrateSamples(donor);
-    });
+    console.log("");
+    console.log("All done!");
+    response.json({status: 'Migration complete'});
 }
 
 
 async function migrateDonors(donor: ClinicalDonor){
+    checkpoint = 'Donor: '+donor.donorId;
+
     const dnRepo = PostgresDataSource.getRepository(Donor);
     const submitterDonorId = donor.submitterId?.toString();
     const programId = donor.programId;
@@ -62,45 +84,51 @@ async function migrateBiomarkers(donor: ClinicalDonor){
     const bmRepo = PostgresDataSource.getRepository(Biomarker);
         const submitterDonorId = donor.submitterId?.toString();
         const programId = donor.programId;
-        donor.biomarker?.forEach(async bm => {
-            const biomarker = new Biomarker();
-            biomarker.submitterDonorId = submitterDonorId || '-';
-            biomarker.programId = programId || '-';
-            biomarker.submitterFollowUpId = bm.clinicalInfo.submitter_follow_up_id?.toString() || '-';
-            biomarker.submitterPrimaryDiagnosisId = bm.clinicalInfo.submitter_primary_diagnosis_id?.toString() || '-';
-            biomarker.submitterSpecimenId = bm.clinicalInfo.submitter_specimen_id?.toString() || '-';
-            biomarker.submitterTreatmentId = bm.clinicalInfo.submitter_treatment_id?.toString() || '-';
-            biomarker.testInterval = bm.clinicalInfo.test_interval?.toString() || '-';
-            biomarker.entityId = bm.biomarkerId?.toString() || '-';
-            biomarker.entityType = "biomarker";
-            await bmRepo.save(biomarker);
+    for (const bm of donor.biomarker) {
+        checkpoint = 'Biomarker: '+bm.biomarkerId;
 
-            console.log("biomarker id "+ biomarker.entityId + " of clinical donor "+donor.id + " migrated.");
-        });
+        const biomarker = new Biomarker();
+        biomarker.submitterDonorId = submitterDonorId || '-';
+        biomarker.programId = programId || '-';
+        biomarker.submitterFollowUpId = bm.clinicalInfo.submitter_follow_up_id?.toString() || '-';
+        biomarker.submitterPrimaryDiagnosisId = bm.clinicalInfo.submitter_primary_diagnosis_id?.toString() || '-';
+        biomarker.submitterSpecimenId = bm.clinicalInfo.submitter_specimen_id?.toString() || '-';
+        biomarker.submitterTreatmentId = bm.clinicalInfo.submitter_treatment_id?.toString() || '-';
+        biomarker.testInterval = bm.clinicalInfo.test_interval?.toString() || '-';
+        biomarker.entityId = bm.biomarkerId?.toString() || '-';
+        biomarker.entityType = "biomarker";
+        await bmRepo.save(biomarker);
+
+        console.log("biomarker id " + biomarker.entityId + " of clinical donor " + donor.id + " migrated.");
+    }
 }
 
 async function migrateComorbidity(donor: ClinicalDonor){
     const cmRepo = PostgresDataSource.getRepository(Comorbidity);
         const submitterDonorId = donor.submitterId?.toString();
         const programId = donor.programId;
-        donor.comorbidity?.forEach(async cm => {
-            const comorbidity = new Comorbidity();
-            comorbidity.submitterDonorId = submitterDonorId || '-';
-            comorbidity.programId = programId || '-';
-            comorbidity.comorbidityTypeCode = cm.clinicalInfo.comorbidity_type_code?.toString() || '-';
-            comorbidity.entityId = cm.comorbidityId?.toString() || '-';
-            comorbidity.entityType = "comorbidity";
-            await cmRepo.save(comorbidity);
+    for (const cm of donor.comorbidity) {
+        checkpoint = 'Comorbidity: '+cm.comorbidityId;
 
-            console.log("comorbidity id "+ comorbidity.entityId + " of clinical donor "+donor.id + " migrated.");
-        });
+        const comorbidity = new Comorbidity();
+        comorbidity.submitterDonorId = submitterDonorId || '-';
+        comorbidity.programId = programId || '-';
+        comorbidity.comorbidityTypeCode = cm.clinicalInfo.comorbidity_type_code?.toString() || '-';
+        comorbidity.entityId = cm.comorbidityId?.toString() || '-';
+        comorbidity.entityType = "comorbidity";
+        await cmRepo.save(comorbidity);
+
+        console.log("comorbidity id " + comorbidity.entityId + " of clinical donor " + donor.id + " migrated.");
+    }
 }
 
 async function migrateExposure(donor: ClinicalDonor){
     const exRepo = PostgresDataSource.getRepository(Exposure);
     const submitterDonorId = donor.submitterId?.toString();
     const programId = donor.programId;
-    donor.exposure?.forEach(async ex => {
+    for (const ex of donor.exposure) {
+        checkpoint = 'Exposure: '+ex.exposureId;
+
         const exposure = new Exposure();
         exposure.submitterDonorId = submitterDonorId || '-';
         exposure.programId = programId || '-';
@@ -108,8 +136,8 @@ async function migrateExposure(donor: ClinicalDonor){
         exposure.entityType = "exposure";
         await exRepo.save(exposure);
 
-        console.log("exposure id "+ exposure.entityId + " of clinical donor "+donor.id + " migrated.");
-    });
+        console.log("exposure id " + exposure.entityId + " of clinical donor " + donor.id + " migrated.");
+    }
 }
 
 
@@ -117,7 +145,9 @@ async function migrateFamilyHistory(donor: ClinicalDonor){
     const fhRepo = PostgresDataSource.getRepository(FamilyHistory);
     const submitterDonorId = donor.submitterId?.toString();
     const programId = donor.programId;
-    donor.familyHistory?.forEach(async fh => {
+    for (const fh of donor.familyHistory) {
+        checkpoint = 'FamilyHistory: '+fh.familyHistoryId;
+
         const familyHistory = new FamilyHistory();
         familyHistory.submitterDonorId = submitterDonorId || '-';
         familyHistory.programId = programId || '-';
@@ -126,8 +156,8 @@ async function migrateFamilyHistory(donor: ClinicalDonor){
         familyHistory.entityType = "family_history";
         await fhRepo.save(familyHistory);
 
-        console.log("familyHitory id "+ familyHistory.entityId + " of clinical donor "+donor.id + " migrated.");
-    });
+        console.log("familyHitory id " + familyHistory.entityId + " of clinical donor " + donor.id + " migrated.");
+    }
 }
 
 
@@ -135,7 +165,9 @@ async function migrateFollowUps(donor: ClinicalDonor){
     const flRepo = PostgresDataSource.getRepository(FollowUp);
     const submitterDonorId = donor.submitterId?.toString();
     const programId = donor.programId;
-    donor.followUps?.forEach(async fl => {
+    for (const fl of donor.followUps) {
+        checkpoint = 'FollowUp: '+fl.followUpId;
+
         const folowUp = new FollowUp();
         folowUp.submitterDonorId = submitterDonorId || '-';
         folowUp.programId = programId || '-';
@@ -144,8 +176,8 @@ async function migrateFollowUps(donor: ClinicalDonor){
         folowUp.entityType = "follow_up";
         await flRepo.save(folowUp);
 
-        console.log("followUp id "+ folowUp.entityId + " of clinical donor "+donor.id + " migrated.");
-    });
+        console.log("followUp id " + folowUp.entityId + " of clinical donor " + donor.id + " migrated.");
+    }
 }
 
 
@@ -153,7 +185,9 @@ async function migratePrimaryDiagnosis(donor: ClinicalDonor){
     const prRepo = PostgresDataSource.getRepository(PrimaryDiagnosis);
     const submitterDonorId = donor.submitterId?.toString();
     const programId = donor.programId;
-    donor.primaryDiagnoses?.forEach(async pr => {
+    for (const pr of donor.primaryDiagnoses) {
+        checkpoint = 'PrimaryDiagnosis: '+pr.primaryDiagnosisId;
+
         const primaryDiagnosis = new PrimaryDiagnosis();
         primaryDiagnosis.submitterDonorId = submitterDonorId || '-';
         primaryDiagnosis.programId = programId || '-';
@@ -162,8 +196,8 @@ async function migratePrimaryDiagnosis(donor: ClinicalDonor){
         primaryDiagnosis.entityType = "primary_diagnosis";
         await prRepo.save(primaryDiagnosis);
 
-        console.log("primaryDiagnosis id "+ primaryDiagnosis.entityId + " of clinical donor "+donor.id + " migrated.");
-    });
+        console.log("primaryDiagnosis id " + primaryDiagnosis.entityId + " of clinical donor " + donor.id + " migrated.");
+    }
 }
 
 
@@ -171,17 +205,22 @@ async function migrateTreatments(donor: ClinicalDonor){
     const trRepo = PostgresDataSource.getRepository(Treatment);
     const submitterDonorId = donor.submitterId?.toString();
     const programId = donor.programId;
-    donor.treatments?.forEach(async tr => {
+    for (const tr of donor.treatments) {
+        checkpoint = 'Treatment: '+tr.treatmentId;
+
+        const submitter_treatment_id = tr.clinicalInfo?.submitter_treatment_id?.toString();
+        const therapy_submitter_treatment_id = tr.therapies[0]?.clinicalInfo?.submitter_treatment_id?.toString();
         const treatment = new Treatment();
         treatment.submitterDonorId = submitterDonorId || '-';
         treatment.programId = programId || '-';
-        treatment.submitterTreatmentId = tr.clinicalInfo.submitter_treatment_id?.toString() || '-';
+        //treatment.submitterTreatmentId = submitterTreatmentId; //tr.clinicalInfo?.submitter_treatment_id?.toString() || '-';
+        treatment.submitterTreatmentId = (!submitter_treatment_id ? therapy_submitter_treatment_id: submitter_treatment_id) || '-' ;
         treatment.entityId = tr.treatmentId?.toString() || '-';
         treatment.entityType = "treatment";
         await trRepo.save(treatment);
 
-        console.log("treatment id "+ treatment.entityId + " of clinical donor "+donor.id + " migrated.");
-    });
+        console.log("treatment id " + treatment.entityId + " of clinical donor " + donor.id + " migrated.");
+    }
 }
 
 
@@ -189,7 +228,9 @@ async function migrateSpecimens(donor: ClinicalDonor){
     const spcRepo = PostgresDataSource.getRepository(Specimen);
     const submitterDonorId = donor.submitterId?.toString();
     const programId = donor.programId;
-    donor.specimens?.forEach(async spc => {
+    for (const spc of donor.specimens) {
+        checkpoint = 'Specimen: '+spc.specimenId;
+
         const specimen = new Specimen();
         specimen.submitterDonorId = submitterDonorId || '-';
         specimen.programId = programId || '-';
@@ -198,8 +239,8 @@ async function migrateSpecimens(donor: ClinicalDonor){
         specimen.entityType = "specimen";
         await spcRepo.save(specimen);
 
-        console.log("specimen id "+ specimen.entityId + " of clinical donor "+donor.id + " migrated.");
-    });
+        console.log("specimen id " + specimen.entityId + " of clinical donor " + donor.id + " migrated.");
+    }
 }
 
 
@@ -207,17 +248,20 @@ async function migrateSamples(donor: ClinicalDonor){
     const smRepo = PostgresDataSource.getRepository(SampleRegistration);
     const submitterDonorId = donor.submitterId?.toString();
     const programId = donor.programId;
-    donor.specimens?.forEach(async spc => {
-        spc.samples.forEach(async sm => {
+    for (const spc of donor.specimens) {
+        for (const sm of spc.samples) {
+            checkpoint = 'Sample: '+sm.sampleId;
+
             const sample = new SampleRegistration();
             sample.submitterDonorId = submitterDonorId || '-';
             sample.programId = programId || '-';
-            sample.submitterSpecimenId = sm.submitterId.toString() || '-';
+            sample.submitterSpecimenId = spc.submitterId.toString() || '-';
+            sample.submitterSampleId = sm.submitterId.toString() || '-';
             sample.entityId = sm.sampleId?.toString() || '-';
             sample.entityType = "sample_registration";
             await smRepo.save(sample);
 
-            console.log("sample id "+ sample.entityId + " of clinical donor "+donor.id + " migrated.");
-        });
-    });
+            console.log("sample id " + sample.entityId + " of clinical donor " + donor.id + " migrated.");
+        }
+    }
 }
