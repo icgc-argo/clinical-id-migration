@@ -46,9 +46,6 @@ export const PostgresDataSource = new DataSource({
 });
 
 
-console.log("HOST ---- "+process.env['MONGO_HOST']);
-
-
 export const MongoDataSource = new DataSource({
     type: "mongodb",
     host: process.env['MONGO_HOST'] || '', //"localhost",

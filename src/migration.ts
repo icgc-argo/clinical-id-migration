@@ -12,20 +12,23 @@ import {Treatment} from "./models/treatment.js";
 import {Specimen} from "./models/specimen.js";
 import {SampleRegistration} from "./models/sample-registration.js";
 import * as fs from "fs";
-import {response} from "express";
+import {Response} from "express";
 
 var myLogFileStream = fs.createWriteStream("./console.log");
 var myConsole = new console.Console(myLogFileStream, myLogFileStream);
 
 let checkpoint = '';
-export async function beginMigration() {
+export async function beginMigration(response: Response) {
 
+    console.log("");
+    console.log("");
+    console.log("The Great Wildebeest Migration begins....");
+    console.log("");
     console.log("...3");
     console.log("......2");
     console.log(".........1");
     console.log("............ GO!");
     console.log("");
-    console.log("The great wildebeest migration begins...");
 
     await MongoDataSource.initialize();
     await  PostgresDataSource.initialize();
@@ -35,8 +38,7 @@ export async function beginMigration() {
 
     for (const donor of donors) {
         console.log("");
-        console.log("");
-        console.log(" ------------ migrating ids for  donor: " + donor.id+" Program Id: "+donor.programId+" -Submitter Id: "+donor.submitterId+" -------------");
+        console.log(" ------------ Migrating ids for  donor: " + donor.id+" Program Id: "+donor.programId+" -Submitter Id: "+donor.submitterId+" -------------");
         console.log("");
         try {
             await migrateDonors(donor);
@@ -50,16 +52,16 @@ export async function beginMigration() {
             await migrateSpecimens(donor);
             await migrateSamples(donor);
         } catch (e) {
-            console.log("migration for donor failed."+" -Checkpoint: "+checkpoint+" -Program Id: "+donor.programId+" -Submitter Id: "+donor.submitterId);
-            console.log(e.message);
+            console.log("Oops, Croc attack! - migration for donor failed."+" -Checkpoint: "+checkpoint+" -Program Id: "+donor.programId+" -Submitter Id: "+donor.submitterId);
+            console.log("Problem: "+e.message);
             await MongoDataSource.getRepository(FailedMigrations).save(donor);
             continue;
         }
     }
 
     console.log("");
-    console.log("All done!");
-    response.json({status: 'Migration complete'});
+    console.log('Wildebeest migrated!');
+    response.send;
 }
 
 
