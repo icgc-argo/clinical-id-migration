@@ -29,7 +29,8 @@
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "tsc-watch": "^6.0.4",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@types/lodash": "^4.14.134"
   },
   "dependencies": {
     "dotenv": "^16.3.1",
@@ -37,5 +38,6 @@
     "mongodb": "^5.9.2",
     "pg": "^8.11.3",
     "typeorm": "^0.3.19",
+    "lodash": "^4.17.21"
   }
 }

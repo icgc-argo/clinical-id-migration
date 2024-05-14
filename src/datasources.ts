@@ -17,18 +17,12 @@ dotenv.config();
 
 export const PostgresDataSource = new DataSource({
     type: "postgres",
-    host: process.env['PG_HOST'] || '', //"localhost",
-    username: process.env['PG_USERNAME'] || '', //"postgres",
-    password: process.env['PG_PASSWORD'] || '', //"password",
-    port: parseInt(process.env['PG_PORT'] || '0'), //5555,
-    database: process.env['PG_DATABASE'] || '', //"postgres",
-    schema: process.env['PG_SCHEMA'] || '', //"clinical_migration",
-    /*ssl: false,
-    extra: {
-        ssl : {
-            rejectUnauthorized:false
-        }
-    },*/
+    host: process.env['PG_HOST'] || '',
+    username: process.env['PG_USERNAME'] || '',
+    password: process.env['PG_PASSWORD'] || '',
+    port: parseInt(process.env['PG_PORT'] || '0'),
+    database: process.env['PG_DATABASE'] || '',
+    schema: process.env['PG_SCHEMA'] || '',
     entities:[
         Biomarker,
         Comorbidity,
@@ -48,17 +42,11 @@ export const PostgresDataSource = new DataSource({
 
 export const MongoDataSource = new DataSource({
     type: "mongodb",
-    host: process.env['MONGO_HOST'] || '', //"localhost",
-    username: process.env['MONGO_USERNAME'] || '', //"",
-    password: process.env['MONGO_PASSWORD'] || '', //"",
-    port: parseInt(process.env['MONGO_PORT'] || '0'), //27017,
-    database: process.env['MONGO_DATABASE'] || '', //"clinical",
-   /* ssl: true,
-    extra: {
-        ssl : {
-            rejectUnauthorized:false
-        }
-    },*/
+    host: process.env['MONGO_HOST'] || '',
+    password: process.env['MONGO_PASSWORD'] || '',
+    username: process.env['MONGO_USERNAME'] || '',
+    port: parseInt(process.env['MONGO_PORT'] || '0'),
+    database: process.env['MONGO_DATABASE'] || '',
     entities: [
         ClinicalDonor,
         FailedMigrations

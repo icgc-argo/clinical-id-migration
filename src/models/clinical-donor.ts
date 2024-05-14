@@ -32,7 +32,7 @@ export class ClinicalDonor {
 }
 
 
-@Entity({ name: 'FailedMigrations' })
+@Entity({ name: 'failedMigrations' })
 export class FailedMigrations {
     @ObjectIdColumn()
     id: string;
