@@ -212,14 +212,10 @@ async function migrateTreatments(donor: ClinicalDonor){
         if(!tr.clinicalInfo){
             throw new Error;
         }
-
-        const submitter_treatment_id = tr.clinicalInfo?.submitter_treatment_id?.toString();
-        const therapy_submitter_treatment_id = tr.therapies[0]?.clinicalInfo?.submitter_treatment_id?.toString();
         const treatment = new Treatment();
         treatment.submitterDonorId = submitterDonorId || '-';
         treatment.programId = programId || '-';
         treatment.submitterTreatmentId = tr.clinicalInfo?.submitter_treatment_id?.toString() || '-';
-        //treatment.submitterTreatmentId = (!submitter_treatment_id ? therapy_submitter_treatment_id: submitter_treatment_id) || '-' ;
         treatment.entityId = tr.treatmentId?.toString() || '-';
         treatment.entityType = "treatment";
         await trRepo.save(treatment);

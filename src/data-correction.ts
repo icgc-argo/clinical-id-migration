@@ -3,8 +3,8 @@ import {Response} from "express";
 import {MongoDataSource} from "./datasources.js";
 import {ClinicalDonor, FailedMigrations, Therapy, Treatment} from "./models/clinical-donor.js";
 
-var myLogFileStream = fs.createWriteStream("./correction.log");
-var myConsole = new console.Console(myLogFileStream, myLogFileStream);
+const myLogFileStream = fs.createWriteStream("./correction.log");
+const myConsole = new console.Console(myLogFileStream, myLogFileStream);
 
 let checkpoint = '';
 
@@ -43,8 +43,7 @@ export async function triggerDataCorrection(response: Response) {
         if(updateDonor){
             myConsole.log('Updating therapies in right treatments: '+" - "+donor.submitterId+" - "+donor.programId);
             donor.treatments = treatments;
-            //await cdRepo.save(donor);
-            await corrected_repo.save(donor);
+            await cdRepo.save(donor);
         }
     }
     return;
