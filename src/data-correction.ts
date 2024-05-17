@@ -3,22 +3,19 @@ import {Response} from "express";
 import {MongoDataSource} from "./datasources.js";
 import {ClinicalDonor, FailedMigrations, Therapy, Treatment} from "./models/clinical-donor.js";
 
-const myLogFileStream = fs.createWriteStream("./correction.log");
-const myConsole = new console.Console(myLogFileStream, myLogFileStream);
-
-let checkpoint = '';
+const logFileStream = fs.createWriteStream("./correction.log");
+const fileConsole = new console.Console(logFileStream, logFileStream);
 
 export async function triggerDataCorrection(response: Response) {
     await MongoDataSource.initialize();
 
     const cdRepo = MongoDataSource.getRepository(ClinicalDonor);
-    const corrected_repo = MongoDataSource.getRepository(FailedMigrations)
     const donors = await cdRepo.find();
 
     for (const donor of donors) {
         let updateDonor=false;
         console.log(donor.donorId);
-        const treatments = new Array<Treatment>;
+        const treatments = new Array<Treatment>();
         const therapies = new Array<Therapy>();
         for(const tr of donor.treatments) {
             if(!tr.clinicalInfo){
@@ -41,7 +38,7 @@ export async function triggerDataCorrection(response: Response) {
             }
         }
         if(updateDonor){
-            myConsole.log('Updating therapies in right treatments: '+" - "+donor.submitterId+" - "+donor.programId);
+            console.log('Updating therapies in right treatments: '+" - "+donor.submitterId+" - "+donor.programId);
             donor.treatments = treatments;
             await cdRepo.save(donor);
         }
