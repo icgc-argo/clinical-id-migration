@@ -1,5 +1,5 @@
 {
-  "name": "clinical-ids-migration",
+  "name": "clinical-id-migration",
   "version": "1.0.0",
   "description": "id migration",
   "main": "index.js",

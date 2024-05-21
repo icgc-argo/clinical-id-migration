@@ -1,12 +1,6 @@
-target
 Dockerfile
 docker-compose.yml
 README.md
-Makefile
-.*
-!.mvn
 npm-debug.log
 node_modules
 dist
-coverage
-*.drawio
