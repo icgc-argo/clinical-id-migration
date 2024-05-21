@@ -4,8 +4,8 @@ WORKDIR /app
 RUN chown -R node:node /app
 USER node
 # copy the package json and install first to optimize docker cache for node modules
-COPY package.json /app/
-COPY package-lock.json /app/
+COPY package.json /app
+COPY package-lock.json /app
 RUN npm ci
 COPY . ./
 RUN npm run build
@@ -23,6 +23,8 @@ USER node
 RUN mkdir dist && mkdir node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json .
+COPY --from=builder /app/package-lock.json .
 COPY --from=builder --chown=node:node /app/entry-point.sh .
 EXPOSE 3221
 CMD ["./entry-point.sh"]
