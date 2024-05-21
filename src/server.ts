@@ -1,4 +1,4 @@
-import {beginMigration} from "./migration.js";
+import {beginMigration} from "./migration.mjs";
 import express from 'express';
 import {triggerDataCorrection} from "./data-correction.js";
 const app = express();
