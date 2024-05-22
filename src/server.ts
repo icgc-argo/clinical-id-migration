@@ -6,7 +6,11 @@ const app = express();
 
 app.route('/migrate').get(beginMigration);
 app.route('/correct').get(triggerDataCorrection);
-app.route('/alive').get(beginMigration);
+app.route('/alive').get(healthCheck);
+
+/*app.listen(process.env['PORT'], () => {
+    console.log(`HTTP REST API SERVER available at http://localhost:${process.env['PORT']}`);
+});*/
 
 app.listen(process.env['PORT'], () => {
     console.log(`HTTP REST API SERVER available at http://localhost:${process.env['PORT']}`);
