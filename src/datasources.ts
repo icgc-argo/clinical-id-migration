@@ -40,7 +40,7 @@ export const PostgresDataSource = new DataSource({
 });
 
 
-export const MongoDataSource = new DataSource({
+/*export const MongoDataSource = new DataSource({
     type: "mongodb",
     host: process.env['MONGO_HOST'] || '',
     password: process.env['MONGO_PASSWORD'] || '',
@@ -51,6 +51,17 @@ export const MongoDataSource = new DataSource({
         ClinicalDonor,
         FailedMigrations
     ],
-    synchronize: false,
+    synchronize: true,
+    logging:false
+});*/
+
+export const MongoDataSource = new DataSource({
+    type: "mongodb",
+    url:"mongodb://clinical-db-mongodb-headless:27017/clinical?replicaSet=rs0",
+    entities: [
+        ClinicalDonor,
+        FailedMigrations
+    ],
+    synchronize: true,
     logging:false
 });
