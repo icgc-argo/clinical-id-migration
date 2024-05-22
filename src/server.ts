@@ -1,11 +1,11 @@
 import {beginMigration} from "./migration.js";
-import express from 'express';
+import express, {response} from 'express';
 import {Request, Response } from 'express';
 import {triggerDataCorrection} from "./data-correction.js";
 const app = express();
 
-app.route('/migrate').get(beginMigration);
-app.route('/correct').get(triggerDataCorrection);
+app.route('/migrate').get(migrateData);
+app.route('/correct').get(correctData);
 app.route('/alive').get(healthCheck);
 
 /*app.listen(process.env['PORT'], () => {
@@ -26,3 +26,15 @@ function healthCheck(request: Request, response: Response) {
         };
         return response.send(healthcheck);
     }
+
+async function correctData(request: Request, response: Response){
+    console.log('data correction triggered');
+    await triggerDataCorrection(response);
+    response.send('Data correction complete');
+}
+
+async function migrateData(request: Request, response: Response){
+    console.log('ID migration triggered');
+    await beginMigration(response);
+    response.send('ID migration complete');
+}
