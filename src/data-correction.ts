@@ -7,6 +7,7 @@ const logFileStream = fs.createWriteStream("./correction.log");
 const fileConsole = new console.Console(logFileStream, logFileStream);
 
 export async function triggerDataCorrection(response: Response) {
+    console.log('starting data correction.....');
     await MongoDataSource.initialize();
 
     const cdRepo = MongoDataSource.getRepository(ClinicalDonor);
