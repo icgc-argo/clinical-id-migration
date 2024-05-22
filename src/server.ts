@@ -19,6 +19,7 @@ app.listen(process.env['PORT'], () => {
 console.log('Server started successfully');
 
 function healthCheck(request: Request, response: Response) {
+    console.log("health check-in....")
         const healthcheck = {
             message: 'Service Up',
             timestamp: Date.now(),
