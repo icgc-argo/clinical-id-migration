@@ -34,6 +34,7 @@ export async function beginMigration(response: Response) {
     await  PostgresDataSource.initialize();
 
     const cdRepo = MongoDataSource.getRepository(ClinicalDonor);
+    const failedMigrations = MongoDataSource.getRepository(FailedMigrations);
     const donors = await cdRepo.find();
 
     for (const donor of donors) {
@@ -54,7 +55,7 @@ export async function beginMigration(response: Response) {
         } catch (e) {
             console.log("Oops, Croc attack! - migration for donor failed."+" -Checkpoint: "+checkpoint+" -Program Id: "+donor.programId+" -Submitter Id: "+donor.submitterId);
             console.log("Problem: "+e.message);
-            await MongoDataSource.getRepository(FailedMigrations).save(donor);
+            await failedMigrations.save(donor);
             continue;
         }
     }
