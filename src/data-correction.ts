@@ -8,7 +8,11 @@ const fileConsole = new console.Console(logFileStream, logFileStream);
 
 export async function triggerDataCorrection(response: Response) {
     console.log('starting data correction.....');
-    await MongoDataSource.initialize();
+    const ds = await MongoDataSource.initialize();
+
+    console.log("datasource initialized: "+ds.isInitialized);
+    const countDonor = ds.getRepository(ClinicalDonor).count();
+    console.log('donor count: '+countDonor)
 
     const cdRepo = MongoDataSource.getRepository(ClinicalDonor);
     const donors = await cdRepo.find();
@@ -19,7 +23,7 @@ export async function triggerDataCorrection(response: Response) {
         console.log(donor.donorId);
         const treatments = new Array<Treatment>();
         const therapies = new Array<Therapy>();
-        for(const tr of donor.treatments) {
+        for(const tr of donor.treatments) {7
             if(!tr.clinicalInfo){
                 updateDonor=true;
                 tr.therapies.forEach(th => {

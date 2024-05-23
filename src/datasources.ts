@@ -40,7 +40,7 @@ export const PostgresDataSource = new DataSource({
 });
 const password= process.env['MONGO_PASSWORD'] || '';
 
-export const MongoDataSource = new DataSource({
+/*export const MongoDataSource = new DataSource({
     type: "mongodb",
     host: process.env['MONGO_HOST'] || '',
     password: process.env['MONGO_PASSWORD'] || '',
@@ -54,6 +54,23 @@ export const MongoDataSource = new DataSource({
     synchronize: true,
     directConnection:true,
     logging:false
+});*/
+
+
+export const MongoDataSource = new DataSource({
+    type: "mongodb",
+    host: "127.0.0.1",
+    password: "",
+    username: "",
+    port: 27017,
+    database: "clinical",
+    entities: [
+        ClinicalDonor,
+        FailedMigrations
+    ],
+    synchronize: true,
+    directConnection:true,
+    logging:true
 });
 
 
