@@ -41,7 +41,7 @@ export async function beginMigration(response: Response) {
     if (!isInitialized){
         await PostgresDataSource.initialize();
     }
-    
+
     const cdRepo = MongoDataSource.getRepository(ClinicalDonor);
     const failedMigrations = MongoDataSource.getRepository(FailedMigrations);
     const donors = await cdRepo.find();
