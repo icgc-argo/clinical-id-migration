@@ -14,33 +14,42 @@ import {SampleRegistration} from "./models/sample-registration.js";
 import * as fs from "fs";
 import {Response} from "express";
 
-const logFileStream = fs.createWriteStream("./fileConsole.log");
-const fileConsole = new console.Console(logFileStream, logFileStream);
+let logFileStream;
+let fileConsole: Console;
 
 let checkpoint = '';
 export async function beginMigration(response: Response) {
 
-    console.log("");
-    console.log("");
-    console.log("The Great Wildebeest Migration begins....");
-    console.log("");
-    console.log("...3");
-    console.log("......2");
-    console.log(".........1");
-    console.log("............ GO!");
-    console.log("");
+    logFileStream = fs.createWriteStream("./MigrationConsole.log");
+    fileConsole = new console.Console(logFileStream, logFileStream);
 
-    await MongoDataSource.initialize();
-    await  PostgresDataSource.initialize();
+    fileConsole.log("");
+    fileConsole.log("");
+    fileConsole.log("The Great Wildebeest Migration begins....");
+    fileConsole.log("");
+    fileConsole.log("...3");
+    fileConsole.log("......2");
+    fileConsole.log(".........1");
+    fileConsole.log("............ GO!");
+    fileConsole.log("");
 
+    let isInitialized = MongoDataSource.isInitialized;
+    if (!isInitialized) {
+        await MongoDataSource.initialize();
+    }
+    isInitialized = PostgresDataSource.isInitialized;
+    if (!isInitialized){
+        await PostgresDataSource.initialize();
+    }
+    
     const cdRepo = MongoDataSource.getRepository(ClinicalDonor);
     const failedMigrations = MongoDataSource.getRepository(FailedMigrations);
     const donors = await cdRepo.find();
 
     for (const donor of donors) {
-        console.log("");
-        console.log(" ------------ Migrating ids for  donor: " + donor.id+" Program Id: "+donor.programId+" -Submitter Id: "+donor.submitterId+" -------------");
-        console.log("");
+        fileConsole.log("");
+        fileConsole.log(" ------------ Migrating ids for  donor: " + donor.id+" Program Id: "+donor.programId+" -Submitter Id: "+donor.submitterId+" -------------");
+        fileConsole.log("");
         try {
             await migrateDonors(donor);
             await migrateBiomarkers(donor);
@@ -53,15 +62,15 @@ export async function beginMigration(response: Response) {
             await migrateSpecimens(donor);
             await migrateSamples(donor);
         } catch (e) {
-            console.log("Oops, Croc attack! - migration for donor failed."+" -Checkpoint: "+checkpoint+" -Program Id: "+donor.programId+" -Submitter Id: "+donor.submitterId);
-            console.log("Problem: "+e.message);
+            fileConsole.log("Oops, Croc attack! - migration for donor failed."+" -Checkpoint: "+checkpoint+" -Program Id: "+donor.programId+" -Submitter Id: "+donor.submitterId);
+            fileConsole.log("Problem: "+e.message);
             await failedMigrations.save(donor);
             continue;
         }
     }
 
-    console.log("");
-    console.log('Wildebeests migrated!');
+    fileConsole.log("");
+    fileConsole.log('Wildebeests migrated!');
     return;
 }
 
@@ -79,7 +88,7 @@ async function migrateDonors(donor: ClinicalDonor){
     idDonor.entityType = "donor";
     await dnRepo.save(idDonor);
 
-    console.log("donor id "+ idDonor.entityId + " of clinical donor "+donor.id + " migrated.");
+    fileConsole.log("donor id "+ idDonor.entityId + " of clinical donor "+donor.id + " migrated.");
 
 }
 
@@ -102,7 +111,7 @@ async function migrateBiomarkers(donor: ClinicalDonor){
         biomarker.entityType = "biomarker";
         await bmRepo.save(biomarker);
 
-        console.log("biomarker id " + biomarker.entityId + " of clinical donor " + donor.id + " migrated.");
+        fileConsole.log("biomarker id " + biomarker.entityId + " of clinical donor " + donor.id + " migrated.");
     }
 }
 
@@ -121,7 +130,7 @@ async function migrateComorbidity(donor: ClinicalDonor){
         comorbidity.entityType = "comorbidity";
         await cmRepo.save(comorbidity);
 
-        console.log("comorbidity id " + comorbidity.entityId + " of clinical donor " + donor.id + " migrated.");
+        fileConsole.log("comorbidity id " + comorbidity.entityId + " of clinical donor " + donor.id + " migrated.");
     }
 }
 
@@ -139,7 +148,7 @@ async function migrateExposure(donor: ClinicalDonor){
         exposure.entityType = "exposure";
         await exRepo.save(exposure);
 
-        console.log("exposure id " + exposure.entityId + " of clinical donor " + donor.id + " migrated.");
+        fileConsole.log("exposure id " + exposure.entityId + " of clinical donor " + donor.id + " migrated.");
     }
 }
 
@@ -159,7 +168,7 @@ async function migrateFamilyHistory(donor: ClinicalDonor){
         familyHistory.entityType = "family_history";
         await fhRepo.save(familyHistory);
 
-        console.log("familyHitory id " + familyHistory.entityId + " of clinical donor " + donor.id + " migrated.");
+        fileConsole.log("familyHitory id " + familyHistory.entityId + " of clinical donor " + donor.id + " migrated.");
     }
 }
 
@@ -179,7 +188,7 @@ async function migrateFollowUps(donor: ClinicalDonor){
         folowUp.entityType = "follow_up";
         await flRepo.save(folowUp);
 
-        console.log("followUp id " + folowUp.entityId + " of clinical donor " + donor.id + " migrated.");
+        fileConsole.log("followUp id " + folowUp.entityId + " of clinical donor " + donor.id + " migrated.");
     }
 }
 
@@ -199,7 +208,7 @@ async function migratePrimaryDiagnosis(donor: ClinicalDonor){
         primaryDiagnosis.entityType = "primary_diagnosis";
         await prRepo.save(primaryDiagnosis);
 
-        console.log("primaryDiagnosis id " + primaryDiagnosis.entityId + " of clinical donor " + donor.id + " migrated.");
+        fileConsole.log("primaryDiagnosis id " + primaryDiagnosis.entityId + " of clinical donor " + donor.id + " migrated.");
     }
 }
 
@@ -221,7 +230,7 @@ async function migrateTreatments(donor: ClinicalDonor){
         treatment.entityType = "treatment";
         await trRepo.save(treatment);
 
-        console.log("treatment id " + treatment.entityId + " of clinical donor " + donor.id + " migrated.");
+        fileConsole.log("treatment id " + treatment.entityId + " of clinical donor " + donor.id + " migrated.");
     }
 }
 
@@ -241,7 +250,7 @@ async function migrateSpecimens(donor: ClinicalDonor){
         specimen.entityType = "specimen";
         await spcRepo.save(specimen);
 
-        console.log("specimen id " + specimen.entityId + " of clinical donor " + donor.id + " migrated.");
+        fileConsole.log("specimen id " + specimen.entityId + " of clinical donor " + donor.id + " migrated.");
     }
 }
 
@@ -263,7 +272,7 @@ async function migrateSamples(donor: ClinicalDonor){
             sample.entityType = "sample_registration";
             await smRepo.save(sample);
 
-            console.log("sample id " + sample.entityId + " of clinical donor " + donor.id + " migrated.");
+            fileConsole.log("sample id " + sample.entityId + " of clinical donor " + donor.id + " migrated.");
         }
     }
 }

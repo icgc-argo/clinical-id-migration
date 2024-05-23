@@ -3,7 +3,7 @@ import {Response} from "express";
 import {MongoDataSource} from "./datasources.js";
 import {ClinicalDonor, FailedMigrations, Therapy, Treatment} from "./models/clinical-donor.js";
 
-const logFileStream = fs.createWriteStream("./correction.log");
+const logFileStream = fs.createWriteStream("./DataCorrection.log");
 const fileConsole = new console.Console(logFileStream, logFileStream);
 
 export async function triggerDataCorrection(response: Response) {
