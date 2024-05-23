@@ -12,6 +12,7 @@ export async function triggerDataCorrection(response: Response) {
 
     const cdRepo = MongoDataSource.getRepository(ClinicalDonor);
     const donors = await cdRepo.find();
+    console.log('donors volume: '+donors.length)
 
     for (const donor of donors) {
         let updateDonor=false;
