@@ -58,6 +58,7 @@ export const PostgresDataSource = new DataSource({
 export const MongoDataSource = new DataSource({
     type: "mongodb",
     url:"mongodb://clinical-db-mongodb-headless:27017/clinical?replicaSet=rs0",
+    directConnection:true,
     entities: [
         ClinicalDonor,
         FailedMigrations
