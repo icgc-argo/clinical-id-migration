@@ -38,7 +38,7 @@ export const PostgresDataSource = new DataSource({
     synchronize: false,
     logging:false
 });
-
+const password= process.env['MONGO_PASSWORD'] || '';
 
 /*export const MongoDataSource = new DataSource({
     type: "mongodb",
@@ -57,7 +57,7 @@ export const PostgresDataSource = new DataSource({
 
 export const MongoDataSource = new DataSource({
     type: "mongodb",
-    url:"mongodb://clinical-db-mongodb-headless:27017/clinical?replicaSet=rs0",
+    url:"mongodb://clinical:"+password+"@clinical-db-mongodb-headless:27017/?authSource=clinical&authMechanism=SCRAM-SHA-256&directConnection=true",
     directConnection:true,
     entities: [
         ClinicalDonor,
