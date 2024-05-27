@@ -1,7 +1,7 @@
 import fs from "fs";
 import {Response} from "express";
 import {MongoDataSource} from "./datasources.js";
-import {ClinicalDonor, FailedMigrations, Therapy, Treatment} from "./models/clinical-donor.js";
+import {ClinicalDonor, Therapy, Treatment} from "./models/clinical-donor.js";
 
 let logFileStream;
 let fileConsole: Console;
